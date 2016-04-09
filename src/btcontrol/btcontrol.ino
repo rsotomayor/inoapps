@@ -84,7 +84,8 @@ void loop() {
   
   if ( flagRxCommand == true ) {
     strCommand = strRx.substring(0,(strRx.length()-2));
-    strCommand.toUpperCase();
+    strCommand.toUpperCase(); // Convierta a mayuscula
+    strCommand.trim();  // Elimina espacios
 
     flagRxCommand     = false ;
     strRx             = "";
