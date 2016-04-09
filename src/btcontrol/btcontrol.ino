@@ -70,10 +70,13 @@ void loop() {
   
   if ( flagRxCommand == true ) {
     strCommand = strRx.substring(0,(strRx.length()-2));
-    flagRxCommand = false ;
-    strRx = "";
-    
+    strCommand.toUpperCase();
+
+
+    flagRxCommand     = false ;
+    strRx             = "";
     flagCommandValido = true ;
+    
     if ( strCommand == "R1ON" ) {
       digitalWrite(Relay1, HIGH); 
     } else if ( strCommand == "R2ON" ) {
