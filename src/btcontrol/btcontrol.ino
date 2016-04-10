@@ -4,8 +4,8 @@
 #define TSAMPLE          30000UL  // millisegundos
 
 // Software serial #1: RX = digital pin 8, TX = digital pin 9
-#define PIN_TX 9
 #define PIN_RX 8
+#define PIN_TX 9
 
 // Las entradas análogas se comportan como salidas digitales A0, A1, A2 y A3
 #define PIN_RELAY1  A0
