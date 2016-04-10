@@ -1,20 +1,23 @@
 #include <SoftwareSerial.h>
 
+
+#define TSAMPLE          10000UL  // millisegundos
+
 // Software serial #1: RX = digital pin 8, TX = digital pin 9
 #define PIN_TX 9
 #define PIN_RX 8
 
 // Las entradas análogas se comportan como salidas digitales A0, A1, A2 y A3
-#define RELAY1  A0
-#define RELAY2  A1
-#define RELAY3  A2
-#define RELAY4  A3
+#define PIN_RELAY1  A0
+#define PIN_RELAY2  A1
+#define PIN_RELAY3  A2
+#define PIN_RELAY4  A3
 
 // Optoacopladores en las entradas digitales D4, D5, D6 y D7
-#define OPTO1   7
-#define OPTO2   6
-#define OPTO3   5
-#define OPTO4   4
+#define PIN_INPUT1   7
+#define PIN_INPUT2   6
+#define PIN_INPUT3  5
+#define PIN_INPUT4  4
 
 #define PIN_PWM 10
 
@@ -29,16 +32,16 @@ void setup() {
   }
 
 // configurando los pines como salidas digitales
-  pinMode(RELAY1, OUTPUT);  
-  pinMode(RELAY2, OUTPUT);
-  pinMode(RELAY3, OUTPUT);
-  pinMode(RELAY4, OUTPUT);
+  pinMode(PIN_RELAY1, OUTPUT);  
+  pinMode(PIN_RELAY2, OUTPUT);
+  pinMode(PIN_RELAY3, OUTPUT);
+  pinMode(PIN_RELAY4, OUTPUT);
   
 // configurando los pines como entradas digitales
-  pinMode(OPTO1, INPUT);  
-  pinMode(OPTO2, INPUT); 
-  pinMode(OPTO3, INPUT); 
-  pinMode(OPTO4, INPUT);
+  pinMode(PIN_INPUT1, INPUT);  
+  pinMode(PIN_INPUT2, INPUT); 
+  pinMode(PIN_INPUT3, INPUT); 
+  pinMode(PIN_INPUT4, INPUT);
  
 //Obs: Si tienes la versión de la placa 1.06, para que funcione correctamente debes configurar una resistencia
 // Pull-UP en el Pin de Salida (TX) del Arduino (RX del Bluetooth), ya que esta versión cuenta con un Diodo,
@@ -51,6 +54,7 @@ void setup() {
 //  digitalWrite(PIN_TX, HIGH); 
   
   portOne.begin(9600);
+
 }
 
 String strRx;
@@ -60,6 +64,44 @@ String strResponse;
 int    counterCRLF=0;
 bool   flagRxCommand=false ;
 bool   flagCommandValido ;
+int    contadorPrevio=0;
+unsigned long previousMillis_a = 0 ;
+unsigned long currentMillis_a;
+unsigned long deltaT;
+unsigned long estado_g ;
+int sPwm_g=0;
+
+void readEstado() {
+
+  estado_g      = 0x00000000;
+  int val;
+
+  val = digitalRead(PIN_RELAY1);
+  estado_g |= ( val << 0 ) ;
+
+  val = digitalRead(PIN_RELAY2);
+  estado_g |= ( val << 1 ) ;
+
+  val = digitalRead(PIN_RELAY3);
+  estado_g |= ( val << 2 ) ;
+
+  val = digitalRead(PIN_RELAY4);
+  estado_g |= ( val << 3 ) ;
+
+  val = digitalRead(PIN_INPUT1);
+  estado_g|= !( val << 4 ) ;
+
+  val = digitalRead(PIN_INPUT2);
+  estado_g |= !( val << 5 ) ;
+
+  val = digitalRead(PIN_INPUT3);
+  estado_g |= !( val << 6 ) ;
+
+  val = digitalRead(PIN_INPUT4);
+  estado_g |= !( val << 7 ) ;
+
+}
+
 
 void loop() {
   
@@ -92,31 +134,36 @@ void loop() {
     flagCommandValido = true ;
     
     if ( strCommand == "R1ON" ) {
-      digitalWrite(RELAY1, HIGH); 
+      digitalWrite(PIN_RELAY1, HIGH); 
     } else if ( strCommand == "R2ON" ) {
-      digitalWrite(RELAY2, HIGH); 
+      digitalWrite(PIN_RELAY2, HIGH); 
     } else if ( strCommand == "R3ON" ) {
-      digitalWrite(RELAY3, HIGH); 
+      digitalWrite(PIN_RELAY3, HIGH); 
     } else if ( strCommand == "R4ON" ) {
-      digitalWrite(RELAY4, HIGH); 
+      digitalWrite(PIN_RELAY4, HIGH); 
     } else if ( strCommand == "R1OFF" ) {
-      digitalWrite(RELAY1, LOW); 
+      digitalWrite(PIN_RELAY1, LOW); 
     } else if ( strCommand == "R2OFF" ) {
-      digitalWrite(RELAY2, LOW); 
+      digitalWrite(PIN_RELAY2, LOW); 
     } else if ( strCommand == "R3OFF" ) {
-      digitalWrite(RELAY3, LOW); 
+      digitalWrite(PIN_RELAY3, LOW); 
     } else if ( strCommand == "R4OFF" ) {
-      digitalWrite(RELAY4, LOW); 
+      digitalWrite(PIN_RELAY4, LOW); 
     } else if ( strCommand == "S0" ) {
-      analogWrite(PIN_PWM,0); // Señal PWM a 0% en el PIN
+      sPwm_g = 0 ;
+      analogWrite(PIN_PWM,sPwm_g); // Señal PWM a 0% en el PIN
     } else if ( strCommand == "S25" ) {
-      analogWrite(PIN_PWM,63); // Señal PWM a 25% en el PIN
+      sPwm_g = 63 ;
+      analogWrite(PIN_PWM,sPwm_g); // Señal PWM a 25% en el PIN
     } else if ( strCommand == "S50" ) {
-      analogWrite(PIN_PWM,127); // Señal PWM a 50% en el PIN
+      sPwm_g = 127 ;
+      analogWrite(PIN_PWM,sPwm_g); // Señal PWM a 50% en el PIN
     } else if ( strCommand == "S75" ) {
-      analogWrite(PIN_PWM,190); // Señal PWM a 75% en el PIN
+      sPwm_g = 190 ;
+      analogWrite(PIN_PWM,sPwm_g); // Señal PWM a 75% en el PIN
     } else if ( strCommand == "S100" ) {
-      analogWrite(PIN_PWM,255); // Señal PWM a 100% en el PIN
+      sPwm_g = 255 ;
+      analogWrite(PIN_PWM,sPwm_g); // Señal PWM a 100% en el PIN
     } else {
       flagCommandValido = false ;
     }
@@ -130,6 +177,24 @@ void loop() {
     portOne.write(strResponse.c_str());
     
   }
+
+
+  currentMillis_a = millis();
+  if ( (currentMillis_a - previousMillis_a) > 0  ) {
+    deltaT = currentMillis_a - previousMillis_a;
+  } else {
+    deltaT = previousMillis_a - currentMillis_a;
+  }
+
+  if (  deltaT > TSAMPLE  ) {
+    readEstado();
+
+    previousMillis_a = currentMillis_a;
+    strResponse = "E:" + String(estado_g,BIN) + ",S:" + String(sPwm_g) + "\r\n";
+    Serial.print(strResponse);      
+    portOne.write(strResponse.c_str());
+  }
+  
 
 
 }
