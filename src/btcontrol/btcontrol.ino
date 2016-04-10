@@ -1,7 +1,7 @@
 #include <SoftwareSerial.h>
 
 
-#define TSAMPLE          30000UL  // millisegundos
+#define TSAMPLE         30000UL  // millisegundos
 
 // Software serial #1: RX = digital pin 8, TX = digital pin 9
 #define PIN_RX 8
@@ -56,7 +56,7 @@ void setup() {
 //  digitalWrite(PIN_TX, HIGH); 
   
   portOne.begin(9600);
-
+  Serial.println("Tatan Test");
 }
 
 String strRx;
@@ -71,7 +71,7 @@ unsigned long previousMillis_a = 0 ;
 unsigned long currentMillis_a;
 unsigned long deltaT;
 unsigned long estado_g ;
-int sPwm_g=0;
+unsigned char sPwm_g=0;
 
 void readEstado() {
 
@@ -196,15 +196,14 @@ void loop() {
     deltaT = previousMillis_a - currentMillis_a;
   }
 
+
   if (  deltaT > TSAMPLE  ) {
     readEstado();
-
     previousMillis_a = currentMillis_a;
     strResponse = "E:" + String(estado_g,BIN) + ",S:" + String(sPwm_g) + "\r\n";
     Serial.print(strResponse);      
     portOne.write(strResponse.c_str());
   }
-  
 
 
 }

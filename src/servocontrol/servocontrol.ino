@@ -109,9 +109,15 @@ void loop() {
       digitalWrite(PIN_OUTPUT_LED2, LOW); 
     } else if ( strCommand[0] == 'S' ) {
       strCommand = strCommand.substring(1,(strRx.length()-1));
-      sPwm_g = atoi(strCommand.c_str());  
-      analogWrite(PIN_PWM,sPwm_g); 
-      
+      sPwm_g = atoi(strCommand.c_str());
+      analogWrite(PIN_PWM,sPwm_g);
+      for (int i = 0; i<20;i++){
+         delay(50);
+         digitalWrite(PIN_OUTPUT_LED2, HIGH); 
+         delay(50);
+         digitalWrite(PIN_OUTPUT_LED2, LOW); 
+      }
+      analogWrite(PIN_PWM, 0);
     } else {
       flagCommandValido = false ;
     }
