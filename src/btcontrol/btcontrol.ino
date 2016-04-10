@@ -1,7 +1,7 @@
 #include <SoftwareSerial.h>
 
 
-#define TSAMPLE          10000UL  // millisegundos
+#define TSAMPLE          30000UL  // millisegundos
 
 // Software serial #1: RX = digital pin 8, TX = digital pin 9
 #define PIN_TX 9
@@ -12,6 +12,7 @@
 #define PIN_RELAY2  A1
 #define PIN_RELAY3  A2
 #define PIN_RELAY4  A3
+#define PIN_OUTPUT1 13
 
 // Optoacopladores en las entradas digitales D4, D5, D6 y D7
 #define PIN_INPUT1   7
@@ -36,6 +37,7 @@ void setup() {
   pinMode(PIN_RELAY2, OUTPUT);
   pinMode(PIN_RELAY3, OUTPUT);
   pinMode(PIN_RELAY4, OUTPUT);
+  pinMode(PIN_OUTPUT1, OUTPUT);
   
 // configurando los pines como entradas digitales
   pinMode(PIN_INPUT1, INPUT);  
@@ -88,17 +90,21 @@ void readEstado() {
   val = digitalRead(PIN_RELAY4);
   estado_g |= ( val << 3 ) ;
 
+  val = digitalRead(PIN_OUTPUT1);
+  estado_g |= ( val << 4 ) ;
+
   val = digitalRead(PIN_INPUT1);
-  estado_g|= !( val << 4 ) ;
+  estado_g|= !( val << 5 ) ;
 
   val = digitalRead(PIN_INPUT2);
-  estado_g |= !( val << 5 ) ;
-
-  val = digitalRead(PIN_INPUT3);
   estado_g |= !( val << 6 ) ;
 
-  val = digitalRead(PIN_INPUT4);
+  val = digitalRead(PIN_INPUT3);
   estado_g |= !( val << 7 ) ;
+
+  val = digitalRead(PIN_INPUT4);
+  estado_g |= !( val << 8 ) ;
+
 
 }
 
@@ -149,6 +155,10 @@ void loop() {
       digitalWrite(PIN_RELAY3, LOW); 
     } else if ( strCommand == "R4OFF" ) {
       digitalWrite(PIN_RELAY4, LOW); 
+    } else if ( strCommand == "O1ON" ) {
+      digitalWrite(PIN_OUTPUT1, HIGH); 
+    } else if ( strCommand == "O1OFF" ) {
+      digitalWrite(PIN_OUTPUT1, LOW); 
     } else if ( strCommand == "S0" ) {
       sPwm_g = 0 ;
       analogWrite(PIN_PWM,sPwm_g); // Señal PWM a 0% en el PIN
